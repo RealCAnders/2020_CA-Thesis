@@ -10,11 +10,11 @@ This repository is subject to change and will be
 extended by proper documentation, after and
 apart from grading of above thesis.
 
-************************************************************************
-***Disclosure:                                                       ***
-***-----------                                                       ***
-***This software comes as it is - there might be errors at runtime   ***
-***and results might be wrong although the code was tested and did   ***
-***work as expected. Since resuluts might be wrong you must          ***
-***absolutely use this software with careful consideration           ***
-************************************************************************
++++
+Disclosure:
+-----------
+This software comes as it is - there might be errors at runtime   
+and results might be wrong although the code was tested and did   
+work as expected. Since resuluts might be wrong you must          
+absolutely use this software with careful consideration           
++++
