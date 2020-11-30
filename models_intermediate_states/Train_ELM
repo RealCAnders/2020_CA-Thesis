@@ -1,0 +1,162 @@
+#!/usr/bin/python
+
+import sys
+import numpy as np
+from numpy import load
+
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+
+import meet
+
+args = sys.argv
+
+print('Number of arguments: %d arguments.' % len(args))
+print('Argument List:', str(args))
+
+rand_stat = 42
+
+## load the data, start with k0010, then go the range until k009 create a reproducible datasplit and shuffle the samples then
+def load_data_as_still_sorted_hfsep_noise_data_then_labels():
+	all_subjects_hfsep = [[], [], [], [], [], [], [], [], [], []]
+	all_subjects_noise = [[], [], [], [], [], [], [], [], [], []]
+
+	for i in range(10):
+		all_subjects_hfsep[i] = load('/media/christoph/Volume/Masterthesis/intermediate_prepped_data/k00%d/epoched_intrplt_filt_500_900_kx_hfsep.npy' % (i + 1))
+		all_subjects_noise[i] = load('/media/christoph/Volume/Masterthesis/intermediate_prepped_data/k00%d/epoched_intrplt_filt_500_900_kx_noise.npy' % (i + 1))
+
+	all_subjects_hfsep = np.concatenate(all_subjects_hfsep, axis=2)
+	all_subjects_noise = np.concatenate(all_subjects_noise, axis=2)
+
+	hfsep_labels = np.ones(len(all_subjects_hfsep[0,0,:]), dtype=np.int8)
+	noise_labels = np.zeros(len(all_subjects_noise[0,0,:]), dtype=np.int8)
+
+	# return them in epoch, channel, time_in_channel - fashion
+	return [np.swapaxes(np.swapaxes(np.concatenate((all_subjects_hfsep, all_subjects_noise), axis=2), 0, 1), 0, 2), np.concatenate((hfsep_labels, noise_labels), axis=0)]
+
+## load the data, start with k0010, then go the range until k009 create a reproducible datasplit and shuffle the samples then
+def load_data_as_still_sorted_hfsep_noise_data_then_labels_from_one_subject(i):
+	all_subjects_hfsep = load('/media/christoph/Volume/Masterthesis/intermediate_prepped_data/k00%d/epoched_intrplt_filt_500_900_kx_hfsep.npy' % (i + 1))
+	all_subjects_noise = load('/media/christoph/Volume/Masterthesis/intermediate_prepped_data/k00%d/epoched_intrplt_filt_500_900_kx_noise.npy' % (i + 1))
+
+	hfsep_labels = np.ones(len(all_subjects_hfsep[0,0,:]), dtype=np.int8)
+	noise_labels = np.zeros(len(all_subjects_noise[0,0,:]), dtype=np.int8)
+
+	# return them in epoch, channel, time_in_channel - fashion
+	return [np.swapaxes(np.swapaxes(np.concatenate((all_subjects_hfsep, all_subjects_noise), axis=2), 0, 1), 0, 2), np.concatenate((hfsep_labels, noise_labels), axis=0)]
+
+data, labels = load_data_as_still_sorted_hfsep_noise_data_then_labels_from_one_subject(2)
+print(data.shape)
+shuffled_data, shuffled_labels = shuffle(data, labels, random_state=rand_stat)
+print(shuffled_data.shape)
+X_train, X_test, y_train, y_test = train_test_split(shuffled_data, shuffled_labels, test_size=0.33, random_state=rand_stat)
+print(X_train.shape)
+
+## Some model definition
+elm = meet.elm.ClassELM()
+
+data_hfsep_1 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k001_500_900_int_70_70_hfsep_100_300.npy")
+print(data_hfsep_1.shape)
+data_noise_1 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k001_500_900_int_70_70_noise_100_300.npy")
+print(data_noise_1.shape)
+data_hfsep_2 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k002_500_900_int_70_70_hfsep_100_300.npy")
+print(data_hfsep_2.shape)
+data_noise_2 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k002_500_900_int_70_70_noise_100_300.npy")
+print(data_noise_2.shape)
+data_hfsep_3 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k003_500_900_int_70_70_hfsep_100_300.npy")
+print(data_hfsep_3.shape)
+data_noise_3 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k003_500_900_int_70_70_noise_100_300.npy")
+print(data_noise_3.shape)
+data_hfsep_4 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k004_500_900_int_70_70_hfsep_100_300.npy")
+print(data_hfsep_4.shape)
+data_noise_4 = load("/home/christoph/Desktop/Beginning_September_Work/Prepped_Data/OutliersRejected/k004_500_900_int_70_70_noise_100_300.npy")
+print(data_noise_4.shape)
+
+## Combine data that has shape: channels x time_datapoint x sample
+x_train_hfsep_1 = data_hfsep_1[:8,:,:-500]
+y_train_hfsep_1 = np.ones(len(x_train_hfsep_1[0,0,:]), dtype=np.int8)
+x_train_noise_1 = data_noise_1[:8,:,:-500]
+y_train_noise_1 = np.zeros(len(x_train_noise_1[0,0,:]), dtype=np.int8)
+
+x_test_hfsep_1 = data_hfsep_1[:8,:,-100:]
+y_test_hfsep_1 = np.ones(len(x_test_hfsep_1[0,0,:]), dtype=np.int8)
+x_test_noise_1 = data_noise_1[:8,:,-100:]
+y_test_noise_1 = np.zeros(len(x_test_noise_1[0,0,:]), dtype=np.int8)
+
+x_val_hfsep_1 = data_hfsep_1[:8,:,-500:-100]
+y_val_hfsep_1 = np.ones(len(x_val_hfsep_1[0,0,:]), dtype=np.int8)
+x_val_noise_1 = data_noise_1[:8,:,-500:-100]
+y_val_noise_1 = np.zeros(len(x_val_noise_1[0,0,:]), dtype=np.int8)
+
+x_train_hfsep_2 = data_hfsep_2[:8,:,:-500]
+y_train_hfsep_2 = np.ones(len(x_train_hfsep_2[0,0,:]), dtype=np.int8)
+x_train_noise_2 = data_noise_2[:8,:,:-500]
+y_train_noise_2 = np.zeros(len(x_train_noise_2[0,0,:]), dtype=np.int8)
+
+x_test_hfsep_2 = data_hfsep_2[:8,:,-100:]
+y_test_hfsep_2 = np.ones(len(x_test_hfsep_2[0,0,:]), dtype=np.int8)
+x_test_noise_2 = data_noise_2[:8,:,-100:]
+y_test_noise_2 = np.zeros(len(x_test_noise_2[0,0,:]), dtype=np.int8)
+
+x_val_hfsep_2 = data_hfsep_2[:8,:,-500:-100]
+y_val_hfsep_2 = np.ones(len(x_val_hfsep_2[0,0,:]), dtype=np.int8)
+x_val_noise_2 = data_noise_2[:8,:,-500:-100]
+y_val_noise_2 = np.zeros(len(x_val_noise_2[0,0,:]), dtype=np.int8)
+
+x_train_hfsep_3 = data_hfsep_3[:8,:,:-500]
+y_train_hfsep_3 = np.ones(len(x_train_hfsep_3[0,0,:]), dtype=np.int8)
+x_train_noise_3 = data_noise_3[:8,:,:-500]
+y_train_noise_3 = np.zeros(len(x_train_noise_3[0,0,:]), dtype=np.int8)
+
+x_test_hfsep_3 = data_hfsep_3[:8,:,-100:]
+y_test_hfsep_3 = np.ones(len(x_test_hfsep_3[0,0,:]), dtype=np.int8)
+x_test_noise_3 = data_noise_3[:8,:,-100:]
+y_test_noise_3 = np.zeros(len(x_test_noise_3[0,0,:]), dtype=np.int8)
+
+x_val_hfsep_3 = data_hfsep_3[:8,:,-500:-100]
+y_val_hfsep_3 = np.ones(len(x_val_hfsep_3[0,0,:]), dtype=np.int8)
+x_val_noise_3 = data_noise_3[:8,:,-500:-100]
+y_val_noise_3 = np.zeros(len(x_val_noise_3[0,0,:]), dtype=np.int8)
+
+x_train_hfsep_4 = data_hfsep_4[:8,:,:-500]
+y_train_hfsep_4 = np.ones(len(x_train_hfsep_4[0,0,:]), dtype=np.int8)
+x_train_noise_4 = data_noise_4[:8,:,:-500]
+y_train_noise_4 = np.zeros(len(x_train_noise_4[0,0,:]), dtype=np.int8)
+
+x_test_hfsep_4 = data_hfsep_4[:8,:,-100:]
+y_test_hfsep_4 = np.ones(len(x_test_hfsep_4[0,0,:]), dtype=np.int8)
+x_test_noise_4 = data_noise_4[:8,:,-100:]
+y_test_noise_4 = np.zeros(len(x_test_noise_4[0,0,:]), dtype=np.int8)
+
+x_val_hfsep_4 = data_hfsep_4[:8,:,-500:-100]
+y_val_hfsep_4 = np.ones(len(x_val_hfsep_4[0,0,:]), dtype=np.int8)
+x_val_noise_4 = data_noise_4[:8,:,-500:-100]
+y_val_noise_4 = np.zeros(len(x_val_noise_4[0,0,:]), dtype=np.int8)
+
+x_train = np.concatenate((x_train_hfsep_1, x_train_noise_1, x_train_hfsep_2, x_train_noise_2, x_train_hfsep_3, x_train_noise_3, x_train_hfsep_4, x_train_noise_4), axis=2)
+y_train = np.concatenate((y_train_hfsep_1, y_train_noise_1, y_train_hfsep_2, y_train_noise_2, y_train_hfsep_3, y_train_noise_3, y_train_hfsep_4, y_train_noise_4), axis=0)
+x_val = np.concatenate((x_val_hfsep_1, x_val_noise_1, x_val_hfsep_2, x_val_noise_2, x_val_hfsep_3, x_val_noise_3, x_val_hfsep_4, x_val_noise_4), axis=2)
+y_val = np.concatenate((y_val_hfsep_1, y_val_noise_1, y_val_hfsep_2, y_val_noise_2, y_val_hfsep_3, y_val_noise_3, y_val_hfsep_4, y_val_noise_4), axis=0)
+x_test = np.concatenate((x_test_hfsep_1, x_test_noise_1, x_test_hfsep_2, x_test_noise_2, x_test_hfsep_3, x_test_noise_3, x_test_hfsep_4, x_test_noise_4), axis=2)
+y_test = np.concatenate((y_test_hfsep_1, y_test_noise_1, y_test_hfsep_2, y_test_noise_2, y_test_hfsep_3, y_test_noise_3, y_test_hfsep_4, y_test_noise_4), axis=0)
+
+## Swap axes so that the samples are in axis 0, then channels, time
+print(x_train.shape)
+x_train = np.swapaxes(np.swapaxes(x_train, 2, 0), 2, 1)
+x_val = np.swapaxes(np.swapaxes(x_val, 2, 0), 2, 1)
+x_test = np.swapaxes(np.swapaxes(x_test, 2, 0), 2, 1)
+print(x_train.shape)
+
+## Reshape so that the samples are in one len and then we have the concatenated datapoints --> (93491, 3600)
+X_train = X_train.reshape(X_train.shape[0], -1)
+X_test = X_test.reshape(X_test.shape[0], -1)
+print(X_train.shape)
+# ds_train = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+# ds_test = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+
+## Train and save the model
+elm.cv(x_train, y_train)
+if elm.istrained:
+	print('Succesfully trained the ELM. Now work on gaining insights and getting performance metrics.')
+print('Code to save the model and its history would go here. Instead, print the accuracy [%s]' % ('To be derived'))
+# own_model.save('/home/christoph/Desktop/Beginning_September_Work/scripts/own_model_baseline_prepped_data')
